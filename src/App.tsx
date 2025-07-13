@@ -24,6 +24,8 @@ const App = () => {
   const [data, setData] = useLocalStorage<BadmintonData>(LOCAL_STORAGE_KEY, {
     players: [],
     matches: [],
+    deletedPlayers: [],
+    queues: [],
     matchHistory: [],
     settings: DEFAULT_SETTINGS
   });
@@ -202,6 +204,8 @@ const App = () => {
     setData({
       players: [],
       matches: [],
+      deletedPlayers: [],
+      queues: [],
       matchHistory: [],
       settings: DEFAULT_SETTINGS
     });
@@ -257,6 +261,7 @@ const App = () => {
           onPlayerSelect={handleTogglePlayerSelection}
           onPlayerRemove={handleRemovePlayer}
           onCreateMatch={handleCreateMatch}
+          
         />
       </div>
     </div>
