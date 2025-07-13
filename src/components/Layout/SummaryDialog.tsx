@@ -6,6 +6,7 @@ import { SKILL_COLORS } from '../../constants';
 interface SummaryDialogProps {
   isOpen: boolean;
   players: Player[];
+  deletedPlayers: Player[];
   matches: Match[];
   settings: Settings;
   onClose: () => void;
@@ -15,6 +16,7 @@ interface SummaryDialogProps {
 const SummaryDialog: React.FC<SummaryDialogProps> = ({
   isOpen,
   players,
+  deletedPlayers,
   matches,
   settings,
   onClose,
@@ -22,14 +24,17 @@ const SummaryDialog: React.FC<SummaryDialogProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // รวมผู้เล่นทั้งหมด (ปัจจุบัน + ที่ถูกลบ)
+  const allPlayers = [...players, ...deletedPlayers];
+  
   // คำนวณข้อมูลสรุป
-  const totalPlayers = players.length;
-  const skillCounts = players.reduce((acc, player) => {
+  const totalPlayers = allPlayers.length;
+  const skillCounts = allPlayers.reduce((acc, player) => {
     acc[player.skill] = (acc[player.skill] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const totalCourtFees = players.reduce((sum, player) => {
+  const totalCourtFees = allPlayers.reduce((sum, player) => {
     return sum + (settings.costSystem === 'club' ? settings.fixedCost : player.cost);
   }, 0);
 
@@ -38,7 +43,7 @@ const SummaryDialog: React.FC<SummaryDialogProps> = ({
   }, 0);
 
   const totalShuttleFees = totalShuttlesUsed * settings.shuttleCost * 
-    (settings.costSystem === 'club' ? players.filter(p => p.gamesPlayed > 0).length : 1);
+    (settings.costSystem === 'club' ? allPlayers.filter(p => p.gamesPlayed > 0).length : 1);
 
   const totalIncome = settings.costSystem === 'club' 
     ? totalCourtFees + totalShuttleFees

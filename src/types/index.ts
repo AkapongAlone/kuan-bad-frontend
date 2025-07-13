@@ -19,6 +19,13 @@ export interface Match {
   endTime?: Date;
 }
 
+export interface Queue {
+  id: string;
+  team1: [string, string];
+  team2: [string, string];
+  createdAt: Date;
+}
+
 export interface Settings {
   courts: number;
   costSystem: 'club' | 'split';
@@ -30,7 +37,9 @@ export interface Settings {
 
 export interface BadmintonData {
   players: Player[];
+  deletedPlayers: Player[];
   matches: Match[];
   matchHistory: [string, string][];
+  queues: Queue[];
   settings: Settings;
 }
