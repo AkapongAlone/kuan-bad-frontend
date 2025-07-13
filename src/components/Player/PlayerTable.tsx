@@ -7,10 +7,12 @@ import DeleteConfirmDialog from './DeleteConfirmDialog';
 interface PlayerTableProps {
   players: Player[];
   selectedPlayers: string[];
+  queueCount: number;
   onPlayerSelect: (playerId: string) => void;
   onPlayerRemove: (playerId: string) => void;
   onCreateMatch: () => void;
   onAddToQueue: () => void;
+  onShowQueue: () => void;
 }
 
 const PlayerTable: React.FC<PlayerTableProps> = ({

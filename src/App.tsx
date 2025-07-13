@@ -3,11 +3,12 @@ import {
   Header,
   SettingsModal,
   SummaryDialog,
+  QueueTableModal,
   AddPlayerForm,
   PlayerTable,
   ActiveMatches
 } from './components';
-import { Player, Match, Settings, BadmintonData } from './types';
+import { Player, Match, Settings, BadmintonData, Queue } from './types';
 import { DEFAULT_SETTINGS, LOCAL_STORAGE_KEY } from './constants';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useWaitTime } from './hooks/useWaitTime';
@@ -33,9 +34,10 @@ const App = () => {
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
 
   // Destructure data for easier access
-  const { players, matches, matchHistory, settings } = data;
+  const { players, matches, matchHistory, settings, deletedPlayers, queues } = data;
 
   // ตรวจสอบว่าตั้งค่าระบบแล้วหรือยัง
   const isSystemConfigured = settings.costSystem === 'split' 
@@ -78,11 +80,15 @@ const App = () => {
   };
 
   const handleRemovePlayer = (id: string) => {
-    setData({
-      ...data,
-      players: players.filter(p => p.id !== id)
-    });
-    setSelectedPlayers(selectedPlayers.filter(pid => pid !== id));
+    const playerToRemove = players.find(p => p.id === id);
+    if (playerToRemove) {
+      setData({
+        ...data,
+        players: players.filter(p => p.id !== id),
+        deletedPlayers: [...data.deletedPlayers, playerToRemove]
+      });
+      setSelectedPlayers(selectedPlayers.filter(pid => pid !== id));
+    }
   };
 
   const handleTogglePlayerSelection = (id: string) => {
@@ -91,6 +97,78 @@ const App = () => {
     } else if (selectedPlayers.length < 4) {
       setSelectedPlayers([...selectedPlayers, id]);
     }
+  };
+
+  const handleAddToQueue = () => {
+    if (selectedPlayers.length !== 4) return;
+
+    const [p1, p2, p3, p4] = selectedPlayers;
+    const team1: [string, string] = [p1, p2];
+    const team2: [string, string] = [p3, p4];
+
+    const newQueue: Queue = {
+      id: Date.now().toString(),
+      team1,
+      team2,
+      createdAt: new Date()
+    };
+
+    setData({
+      ...data,
+      queues: [...data.queues, newQueue]
+    });
+
+    setSelectedPlayers([]);
+    alert('เพิ่มคิวเรียบร้อยแล้ว');
+  };
+
+  const handleShowQueue = () => {
+    setShowQueue(true);
+  };
+
+  const handleDeleteQueue = (queueId: string) => {
+    setData({
+      ...data,
+      queues: queues.filter(q => q.id !== queueId)
+    });
+  };
+
+  const handleStartMatchFromQueue = (queueId: string) => {
+    const queue = queues.find(q => q.id === queueId);
+    if (!queue) return;
+
+    const activeCourts = getActiveCourtCount(matches);
+    if (activeCourts >= settings.courts) {
+      alert('ไม่มีสนามว่าง!');
+      return;
+    }
+
+    const newMatch: Match = {
+      id: Date.now().toString(),
+      court: activeCourts + 1,
+      team1: queue.team1,
+      team2: queue.team2,
+      shuttlesUsed: 1,
+      startTime: new Date()
+    };
+
+    const playerIds = [...queue.team1, ...queue.team2];
+    const updatedPlayers = players.map(p => {
+      if (playerIds.includes(p.id)) {
+        return { ...p, isPlaying: true, gamesPlayed: p.gamesPlayed + 1 };
+      }
+      return p;
+    });
+
+    setData({
+      ...data,
+      matches: [...matches, newMatch],
+      matchHistory: [...matchHistory, [queue.team1.join(','), queue.team2.join(',')]],
+      players: updatedPlayers,
+      queues: queues.filter(q => q.id !== queueId)
+    });
+
+    setShowQueue(false);
   };
 
   const handleCreateMatch = () => {
@@ -232,10 +310,21 @@ const App = () => {
       <SummaryDialog
         isOpen={showSummary}
         players={players}
+        deletedPlayers={data.deletedPlayers}
         matches={matches}
         settings={settings}
         onClose={() => setShowSummary(false)}
         onConfirmEnd={handleConfirmEndSession}
+      />
+
+      <QueueTableModal
+        isOpen={showQueue}
+        queues={queues}
+        players={players}
+        hasAvailableCourt={getActiveCourtCount(matches) < settings.courts}
+        onClose={() => setShowQueue(false)}
+        onStartMatch={handleStartMatchFromQueue}
+        onDeleteQueue={handleDeleteQueue}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -258,10 +347,12 @@ const App = () => {
         <PlayerTable
           players={players}
           selectedPlayers={selectedPlayers}
+          queueCount={queues.length}
           onPlayerSelect={handleTogglePlayerSelection}
           onPlayerRemove={handleRemovePlayer}
           onCreateMatch={handleCreateMatch}
-          
+          onAddToQueue={handleAddToQueue}
+          onShowQueue={handleShowQueue}
         />
       </div>
     </div>
