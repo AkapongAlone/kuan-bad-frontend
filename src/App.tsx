@@ -52,6 +52,18 @@ const App = () => {
     setData({ ...data, players: updatedPlayers });
   });
 
+  // ตรวจสอบและเพิ่ม joinedAt ให้ผู้เล่นเก่าที่ไม่มี
+  useEffect(() => {
+    const playersNeedUpdate = players.some(p => !p.joinedAt);
+    if (playersNeedUpdate) {
+      const updatedPlayers = players.map(p => ({
+        ...p,
+        joinedAt: p.joinedAt || new Date()
+      }));
+      setData({ ...data, players: updatedPlayers });
+    }
+  }, []);
+
   // เปิด settings modal อัตโนมัติถ้ายังไม่ได้ตั้งค่า
   useEffect(() => {
     if (!isSystemConfigured && players.length === 0 && matches.length === 0) {
@@ -83,7 +95,8 @@ const App = () => {
       waitTime: 0,
       cost: settings.costSystem === 'club' ? settings.fixedCost : 0,
       isPlaying: false,
-      shuttlesUsed: 0
+      shuttlesUsed: 0,
+      joinedAt: new Date()
     };
 
     setData({

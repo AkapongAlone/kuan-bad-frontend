@@ -12,16 +12,26 @@ export function useWaitTime(
     const updateWaitTimes = () => {
       setPlayers(
         players.map(player => {
-          if (!player.isPlaying && player.lastPlayTime) {
+          if (!player.isPlaying) {
+            // ถ้ายังไม่เคยเล่นเลย ให้นับจาก joinedAt
+            // ถ้าเคยเล่นแล้ว ให้นับจาก lastPlayTime
+            const referenceTime = player.lastPlayTime 
+              ? new Date(player.lastPlayTime) 
+              : new Date(player.joinedAt);
+              
             const waitTime = Math.floor(
-              (new Date().getTime() - new Date(player.lastPlayTime).getTime()) / 60000
+              (new Date().getTime() - referenceTime.getTime()) / 60000
             );
+            
             return { ...player, waitTime };
           }
           return player;
         })
       );
     };
+
+    // Update immediately when component mounts
+    updateWaitTimes();
 
     const interval = setInterval(updateWaitTimes, WAIT_TIME_UPDATE_INTERVAL);
 

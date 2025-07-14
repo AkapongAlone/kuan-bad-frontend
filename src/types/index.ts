@@ -8,6 +8,7 @@ export interface Player {
   isPlaying: boolean;
   lastPlayTime?: Date;
   shuttlesUsed: number;
+  joinedAt: Date;
 }
 
 export interface Match {

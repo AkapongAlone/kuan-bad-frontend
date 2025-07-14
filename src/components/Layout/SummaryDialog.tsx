@@ -42,8 +42,8 @@ const SummaryDialog: React.FC<SummaryDialogProps> = ({
     return sum + match.shuttlesUsed;
   }, 0);
 
-  const totalShuttleFees = totalShuttlesUsed * settings.shuttleCost * 
-    (settings.costSystem === 'club' ? allPlayers.filter(p => p.gamesPlayed > 0).length : 1);
+  const totalShuttleFees = totalShuttlesUsed * settings.shuttleCost * 4;
+    // (settings.costSystem === 'club' ? allPlayers.filter(p => p.gamesPlayed > 0).length : 1);
 
   const totalIncome = settings.costSystem === 'club' 
     ? totalCourtFees + totalShuttleFees
