@@ -7,6 +7,7 @@ export interface Player {
   cost: number;
   isPlaying: boolean;
   lastPlayTime?: Date;
+  shuttlesUsed: number;
 }
 
 export interface Match {

@@ -25,11 +25,24 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
   if (!isOpen) return null;
 
   const getPlayerName = (playerId: string) => {
-    return players.find(p => p.id === playerId)?.name || 'Unknown';
+    const player = players.find(p => p.id === playerId);
+    return player?.name || 'Unknown';
   };
 
   const getPlayerSkill = (playerId: string) => {
     return players.find(p => p.id === playerId)?.skill || 'N';
+  };
+
+  const isPlayerPlaying = (playerId: string) => {
+    return players.find(p => p.id === playerId)?.isPlaying || false;
+  };
+
+  const isQueuePlayersAvailable = (queue: Queue): boolean => {
+    const playerIds = [...queue.team1, ...queue.team2];
+    return !playerIds.some(id => {
+      const player = players.find(p => p.id === id);
+      return player?.isPlaying;
+    });
   };
 
   const formatQueueTime = (createdAt: Date) => {
@@ -62,7 +75,7 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
         {!hasAvailableCourt && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <p className="text-sm text-yellow-800">
-              <strong>สนามเต็ม:</strong> ไม่สามารถเริ่มแมทช์ใหม่ได้จนกว่าจะมีสนามว่าง
+              <strong>ไม่สามารถเริ่มแมทช์ได้:</strong> สนามเต็มหรือยังไม่ได้ตั้งค่าจำนวนสนาม
             </p>
           </div>
         )}
@@ -85,6 +98,11 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
                         <span className="text-xs text-gray-500">
                           • {formatQueueTime(queue.createdAt)}
                         </span>
+                        {!isQueuePlayersAvailable(queue) && (
+                          <span className="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                            มีผู้เล่นกำลังเล่นอยู่
+                          </span>
+                        )}
                       </div>
                       
                       <div className="flex flex-col sm:flex-row gap-2 text-sm">
@@ -93,12 +111,16 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
                             ทีม A
                           </span>
                           <div className="flex items-center gap-1">
-                            <span className="font-medium">{getPlayerName(queue.team1[0])}</span>
+                            <span className={`font-medium ${isPlayerPlaying(queue.team1[0]) ? 'text-gray-400 line-through' : ''}`}>
+                              {getPlayerName(queue.team1[0])}
+                            </span>
                             <span className={`px-1.5 py-0.5 text-white text-xs rounded-full ${SKILL_COLORS[getPlayerSkill(queue.team1[0])]}`}>
                               {getPlayerSkill(queue.team1[0])}
                             </span>
                             <span className="text-gray-400">+</span>
-                            <span className="font-medium">{getPlayerName(queue.team1[1])}</span>
+                            <span className={`font-medium ${isPlayerPlaying(queue.team1[1]) ? 'text-gray-400 line-through' : ''}`}>
+                              {getPlayerName(queue.team1[1])}
+                            </span>
                             <span className={`px-1.5 py-0.5 text-white text-xs rounded-full ${SKILL_COLORS[getPlayerSkill(queue.team1[1])]}`}>
                               {getPlayerSkill(queue.team1[1])}
                             </span>
@@ -112,12 +134,16 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
                             ทีม B
                           </span>
                           <div className="flex items-center gap-1">
-                            <span className="font-medium">{getPlayerName(queue.team2[0])}</span>
+                            <span className={`font-medium ${isPlayerPlaying(queue.team2[0]) ? 'text-gray-400 line-through' : ''}`}>
+                              {getPlayerName(queue.team2[0])}
+                            </span>
                             <span className={`px-1.5 py-0.5 text-white text-xs rounded-full ${SKILL_COLORS[getPlayerSkill(queue.team2[0])]}`}>
                               {getPlayerSkill(queue.team2[0])}
                             </span>
                             <span className="text-gray-400">+</span>
-                            <span className="font-medium">{getPlayerName(queue.team2[1])}</span>
+                            <span className={`font-medium ${isPlayerPlaying(queue.team2[1]) ? 'text-gray-400 line-through' : ''}`}>
+                              {getPlayerName(queue.team2[1])}
+                            </span>
                             <span className={`px-1.5 py-0.5 text-white text-xs rounded-full ${SKILL_COLORS[getPlayerSkill(queue.team2[1])]}`}>
                               {getPlayerSkill(queue.team2[1])}
                             </span>
@@ -129,12 +155,17 @@ const QueueTableModal: React.FC<QueueTableModalProps> = ({
                     <div className="flex gap-2 ml-4">
                       <button
                         onClick={() => onStartMatch(queue.id)}
-                        disabled={!hasAvailableCourt}
+                        disabled={!hasAvailableCourt || !isQueuePlayersAvailable(queue)}
                         className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-sm ${
-                          hasAvailableCourt
+                          hasAvailableCourt && isQueuePlayersAvailable(queue)
                             ? 'bg-green-600 text-white hover:bg-green-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
+                        title={
+                          !hasAvailableCourt ? 'สนามเต็ม' : 
+                          !isQueuePlayersAvailable(queue) ? 'มีผู้เล่นกำลังเล่นอยู่' : 
+                          'เริ่มแมทช์'
+                        }
                       >
                         <Play size={16} />
                         เริ่ม

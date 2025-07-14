@@ -1,7 +1,7 @@
 import { Settings } from '../types';
 
 export const DEFAULT_SETTINGS: Settings = {
-  courts: 2,
+  courts: 0,
   costSystem: 'club',
   fixedCost: 0,
   shuttleCost: 0,

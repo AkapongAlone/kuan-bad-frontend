@@ -44,6 +44,9 @@ const App = () => {
     ? settings.totalCost > 0 
     : settings.fixedCost > 0 && settings.shuttleCost > 0;
 
+  // ตรวจสอบว่าตั้งค่าสนามแล้วหรือยัง
+  const hasConfiguredCourts = settings.courts > 0;
+
   // Update wait times
   useWaitTime(players, (updatedPlayers) => {
     setData({ ...data, players: updatedPlayers });
@@ -63,14 +66,24 @@ const App = () => {
       return;
     }
 
+    // ตรวจสอบชื่อซ้ำ (ไม่สนใจตัวพิมพ์เล็กใหญ่)
+    const normalizedName = name.trim().toLowerCase();
+    const isDuplicate = players.some(p => p.name.toLowerCase() === normalizedName);
+    
+    if (isDuplicate) {
+      alert('ชื่อนี้มีในระบบแล้ว');
+      return;
+    }
+
     const newPlayer: Player = {
       id: Date.now().toString(),
-      name,
+      name: name.trim(),
       skill,
       gamesPlayed: 0,
       waitTime: 0,
       cost: settings.costSystem === 'club' ? settings.fixedCost : 0,
-      isPlaying: false
+      isPlaying: false,
+      shuttlesUsed: 0
     };
 
     setData({
@@ -119,7 +132,6 @@ const App = () => {
     });
 
     setSelectedPlayers([]);
-    alert('เพิ่มคิวเรียบร้อยแล้ว');
   };
 
   const handleShowQueue = () => {
@@ -136,6 +148,12 @@ const App = () => {
   const handleStartMatchFromQueue = (queueId: string) => {
     const queue = queues.find(q => q.id === queueId);
     if (!queue) return;
+
+    if (!hasConfiguredCourts) {
+      alert('กรุณาตั้งค่าจำนวนสนามก่อน');
+      setShowSettings(true);
+      return;
+    }
 
     const activeCourts = getActiveCourtCount(matches);
     if (activeCourts >= settings.courts) {
@@ -160,6 +178,12 @@ const App = () => {
       return p;
     });
 
+    // เช็คคู่ซ้ำ
+    if (hasTeamsPlayedBefore(queue.team1, queue.team2, matchHistory)) {
+      const confirmed = window.confirm('คู่นี้เคยเจอกันแล้ว! ต้องการจัดแมทช์นี้หรือไม่?');
+      if (!confirmed) return;
+    }
+
     setData({
       ...data,
       matches: [...matches, newMatch],
@@ -167,13 +191,17 @@ const App = () => {
       players: updatedPlayers,
       queues: queues.filter(q => q.id !== queueId)
     });
-
-    setShowQueue(false);
   };
 
   const handleCreateMatch = () => {
     if (!isSystemConfigured) {
       alert('กรุณาตั้งค่าระบบก่อน (ค่าคอร์ดและค่าลูก)');
+      setShowSettings(true);
+      return;
+    }
+
+    if (!hasConfiguredCourts) {
+      alert('กรุณาตั้งค่าจำนวนสนามก่อน');
       setShowSettings(true);
       return;
     }
@@ -246,7 +274,8 @@ const App = () => {
           waitTime: 0,
           cost: settings.costSystem === 'club' 
             ? p.cost + shuttleCostPerPlayer 
-            : p.cost
+            : p.cost,
+          shuttlesUsed: (p.shuttlesUsed || 0) + shuttlesUsed
         };
       }
       return p;
@@ -271,6 +300,33 @@ const App = () => {
       );
       setData({ ...data, players: updatedPlayers });
     }
+  };
+
+  const handleUpdatePlayer = (playerId: string, updates: Partial<Player>) => {
+    // ถ้ามีการเปลี่ยนชื่อ ต้องเช็คชื่อซ้ำ
+    if (updates.name) {
+      const normalizedName = updates.name.trim().toLowerCase();
+      const isDuplicate = players.some(p => 
+        p.id !== playerId && p.name.toLowerCase() === normalizedName
+      );
+      
+      if (isDuplicate) {
+        alert('ชื่อนี้มีในระบบแล้ว');
+        return;
+      }
+    }
+
+    const updatedPlayers = players.map(p => {
+      if (p.id === playerId) {
+        return { ...p, ...updates };
+      }
+      return p;
+    });
+
+    setData({
+      ...data,
+      players: updatedPlayers
+    });
   };
 
   const handleEndSession = () => {
@@ -321,7 +377,7 @@ const App = () => {
         isOpen={showQueue}
         queues={queues}
         players={players}
-        hasAvailableCourt={getActiveCourtCount(matches) < settings.courts}
+        hasAvailableCourt={hasConfiguredCourts && getActiveCourtCount(matches) < settings.courts}
         onClose={() => setShowQueue(false)}
         onStartMatch={handleStartMatchFromQueue}
         onDeleteQueue={handleDeleteQueue}
@@ -350,6 +406,7 @@ const App = () => {
           queueCount={queues.length}
           onPlayerSelect={handleTogglePlayerSelection}
           onPlayerRemove={handleRemovePlayer}
+          onPlayerUpdate={handleUpdatePlayer}
           onCreateMatch={handleCreateMatch}
           onAddToQueue={handleAddToQueue}
           onShowQueue={handleShowQueue}

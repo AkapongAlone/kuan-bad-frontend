@@ -37,11 +37,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <label className="block text-sm text-gray-600 mb-2">จำนวนสนาม</label>
             <input
               type="number"
-              value={settings.courts}
+              value={settings.courts === 0 ? '' : settings.courts}
               onChange={(e) => onSettingsChange({
                 ...settings,
-                courts: parseInt(e.target.value) || 1
+                courts: parseInt(e.target.value) || 0
               })}
+              placeholder="2"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
             />
           </div>
@@ -57,7 +58,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
             >
               <option value="club">ระบบก๊วน</option>
-              {/* <option value="split">หารเท่า</option> */}
+              <option value="split">หารเท่า</option>
             </select>
           </div>
 
@@ -67,11 +68,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <label className="block text-sm text-gray-600 mb-2">ค่าสนาม (บาท/คน)</label>
                 <input
                   type="number"
-                  value={settings.fixedCost}
+                  value={settings.fixedCost || ''}
                   onChange={(e) => onSettingsChange({
                     ...settings,
                     fixedCost: parseInt(e.target.value) || 0
                   })}
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
                 />
               </div>
@@ -79,11 +81,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <label className="block text-sm text-gray-600 mb-2">ค่าลูก (บาท/ลูก/คน)</label>
                 <input
                   type="number"
-                  value={settings.shuttleCost}
+                  value={settings.shuttleCost || ''}
                   onChange={(e) => onSettingsChange({
                     ...settings,
                     shuttleCost: parseInt(e.target.value) || 0
                   })}
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -97,11 +100,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <label className="block text-sm text-gray-600 mb-2">ค่าใช้จ่ายทั้งหมด (บาท)</label>
                 <input
                   type="number"
-                  value={settings.totalCost}
+                  value={settings.totalCost || ''}
                   onChange={(e) => onSettingsChange({
                     ...settings,
                     totalCost: parseInt(e.target.value) || 0
                   })}
+                  placeholder="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
                 />
               </div>

@@ -7,6 +7,7 @@ export { default as QueueTableModal } from './Layout/QueueTableModal';
 // Player components
 export { default as AddPlayerForm } from './Player/AddPlayerForm';
 export { default as PlayerTable } from './Player/PlayerTable';
+export { default as EditPlayerModal } from './Player/EditPlayerModal';
 
 // Match components
 export { default as ActiveMatches } from './Match/ActiveMatches';

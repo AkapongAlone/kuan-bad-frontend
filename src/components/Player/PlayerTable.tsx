@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Play, Clock, AlertCircle, Search, Filter, Users } from 'lucide-react';
+import { Play, Clock, AlertCircle, Search, Filter, Users, Edit2 } from 'lucide-react';
 import { Player } from '../../types';
 import { SKILL_COLORS, WAIT_TIME_WARNING_THRESHOLD } from '../../constants';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
+import EditPlayerModal from './EditPlayerModal';
 
 interface PlayerTableProps {
   players: Player[];
@@ -10,6 +11,7 @@ interface PlayerTableProps {
   queueCount: number;
   onPlayerSelect: (playerId: string) => void;
   onPlayerRemove: (playerId: string) => void;
+  onPlayerUpdate: (playerId: string, updates: Partial<Player>) => void;
   onCreateMatch: () => void;
   onAddToQueue: () => void;
   onShowQueue: () => void;
@@ -18,14 +20,21 @@ interface PlayerTableProps {
 const PlayerTable: React.FC<PlayerTableProps> = ({
   players,
   selectedPlayers,
+  queueCount,
   onPlayerSelect,
   onPlayerRemove,
+  onPlayerUpdate,
   onCreateMatch,
-  onAddToQueue
+  onAddToQueue,
+  onShowQueue
 }) => {
   // State สำหรับ dialog ยืนยันการลบ
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+  
+  // State สำหรับแก้ไขผู้เล่น
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [playerToEdit, setPlayerToEdit] = useState<Player | null>(null);
   
   // State สำหรับ search และ filter
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +76,18 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setPlayerToDelete(null);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, player: Player) => {
+    e.stopPropagation();
+    setPlayerToEdit(player);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = (playerId: string, updates: Partial<Player>) => {
+    onPlayerUpdate(playerId, updates);
+    setEditDialogOpen(false);
+    setPlayerToEdit(null);
   };
 
   const getStatusMessage = () => {
@@ -118,24 +139,38 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
             <h2 className="text-lg font-light text-gray-700">รายชื่อสมาชิก</h2>
             <p className="text-sm text-gray-500 mt-1">{getStatusMessage()}</p>
           </div>
-          {selectedPlayers.length === 4 && (
-            <div className="flex gap-2">
-              <button
-                onClick={onAddToQueue}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Users size={18} />
-                เพิ่มคิว
-              </button>
-              <button
-                onClick={onCreateMatch}
-                className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
-              >
-                <Play size={18} />
-                จัดแมทช์
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <button
+              onClick={onShowQueue}
+              className="relative px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+            >
+              <Users size={18} />
+              ดูคิว
+              {queueCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {queueCount}
+                </span>
+              )}
+            </button>
+            {selectedPlayers.length === 4 && (
+              <>
+                <button
+                  onClick={onAddToQueue}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Users size={18} />
+                  เพิ่มคิว
+                </button>
+                <button
+                  onClick={onCreateMatch}
+                  className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+                >
+                  <Play size={18} />
+                  จัดแมทช์
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Search and Filter Section */}
@@ -193,6 +228,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
               <th className="text-left p-4 font-light text-gray-600">ชื่อ</th>
               <th className="text-left p-4 font-light text-gray-600">ระดับ</th>
               <th className="text-left p-4 font-light text-gray-600">เล่นแล้ว</th>
+              <th className="text-left p-4 font-light text-gray-600">ลูกที่ใช้</th>
               <th className="text-left p-4 font-light text-gray-600">เวลารอ</th>
               <th className="text-left p-4 font-light text-gray-600">ค่าใช้จ่าย</th>
               <th className="text-left p-4 font-light text-gray-600">สถานะ</th>
@@ -202,7 +238,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
           <tbody>
             {filteredPlayers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-500">
+                <td colSpan={8} className="text-center py-8 text-gray-500">
                   {searchTerm || skillFilter !== 'all' || statusFilter !== 'all' 
                     ? 'ไม่พบผู้เล่นที่ตรงกับเงื่อนไข' 
                     : 'ยังไม่มีผู้เล่น'}
@@ -234,6 +270,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
                       </span>
                     </td>
                     <td className="p-4 text-gray-700">{player.gamesPlayed}</td>
+                    <td className="p-4 text-gray-700">{player.shuttlesUsed || 0}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-gray-700">
                         {player.waitTime > WAIT_TIME_WARNING_THRESHOLD && (
@@ -252,12 +289,21 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
                       </span>
                     </td>
                     <td className="p-4">
-                      <button
-                        onClick={(e) => handleDeleteClick(e, player)}
-                        className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        ลบผู้เล่น
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => handleEditClick(e, player)}
+                          className="px-3 py-1 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1"
+                        >
+                          <Edit2 size={14} />
+                          แก้ไข
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteClick(e, player)}
+                          className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          ลบ
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -272,6 +318,13 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
         player={playerToDelete}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
+      />
+      
+      <EditPlayerModal
+        isOpen={editDialogOpen}
+        player={playerToEdit}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleEditSave}
       />
     </div>
   );
