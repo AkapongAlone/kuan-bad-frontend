@@ -58,7 +58,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
             >
               <option value="club">ระบบก๊วน</option>
-              <option value="split">หารเท่า</option>
+              {/* <option value="split">หารเท่า</option> */}
             </select>
           </div>
 
