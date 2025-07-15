@@ -201,99 +201,99 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
-      <div className="sticky top-0 bg-white z-10 border-b border-gray-200">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-lg font-light text-gray-700">รายชื่อสมาชิก</h2>
-              <p className="text-sm text-gray-500 mt-1">{getStatusMessage()}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={onShowQueue}
-                className="relative px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-              >
-                <Users size={18} />
-                ดูคิว
-                {queueCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {queueCount}
-                  </span>
-                )}
-              </button>
-              {selectedPlayers.length === 4 && (
-                <>
-                  <button
-                    onClick={onAddToQueue}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                  >
-                    <Users size={18} />
-                    เพิ่มคิว
-                  </button>
-                  <button
-                    onClick={onCreateMatch}
-                    className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <Play size={18} />
-                    จัดแมทช์
-                  </button>
-                </>
-              )}
-            </div>
+      {/* Header Section - Fixed */}
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-lg font-light text-gray-700">รายชื่อสมาชิก</h2>
+            <p className="text-sm text-gray-500 mt-1">{getStatusMessage()}</p>
           </div>
+          <div className="flex gap-2">
+            <button
+              onClick={onShowQueue}
+              className="relative px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+            >
+              <Users size={18} />
+              ดูคิว
+              {queueCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {queueCount}
+                </span>
+              )}
+            </button>
+            {selectedPlayers.length === 4 && (
+              <>
+                <button
+                  onClick={onAddToQueue}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Users size={18} />
+                  เพิ่มคิว
+                </button>
+                <button
+                  onClick={onCreateMatch}
+                  className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+                >
+                  <Play size={18} />
+                  จัดแมทช์
+                </button>
+              </>
+            )}
+          </div>
+        </div>
 
-          {/* Search and Filter Section */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="ค้นหาผู้เล่น..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <select
-                value={skillFilter}
-                onChange={(e) => setSkillFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
-              >
-                <option value="all">ทุกระดับ</option>
-                <option value="BG">BG</option>
-                <option value="N">N</option>
-                <option value="S">S</option>
-                <option value="P-">P-</option>
-                <option value="P/P+">P/P+</option>
-                <option value="C">C</option>
-              </select>
-              
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
-              >
-                <option value="all">ทุกสถานะ</option>
-                <option value="waiting">รอ</option>
-                <option value="playing">กำลังเล่น</option>
-              </select>
-            </div>
+        {/* Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="ค้นหาผู้เล่น..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
+            />
           </div>
           
-          {/* Result count */}
-          {(searchTerm || skillFilter !== 'all' || statusFilter !== 'all') && (
-            <p className="text-sm text-gray-500 mt-3">
-              พบ {filteredAndSortedPlayers.length} คน จากทั้งหมด {players.length} คน
-            </p>
-          )}
+          <div className="flex gap-2">
+            <select
+              value={skillFilter}
+              onChange={(e) => setSkillFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
+            >
+              <option value="all">ทุกระดับ</option>
+              <option value="BG">BG</option>
+              <option value="N">N</option>
+              <option value="S">S</option>
+              <option value="P-">P-</option>
+              <option value="P/P+">P/P+</option>
+              <option value="C">C</option>
+            </select>
+            
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400"
+            >
+              <option value="all">ทุกสถานะ</option>
+              <option value="waiting">รอ</option>
+              <option value="playing">กำลังเล่น</option>
+            </select>
+          </div>
         </div>
+        
+        {/* Result count */}
+        {(searchTerm || skillFilter !== 'all' || statusFilter !== 'all') && (
+          <p className="text-sm text-gray-500 mt-3">
+            พบ {filteredAndSortedPlayers.length} คน จากทั้งหมด {players.length} คน
+          </p>
+        )}
       </div>
       
-      <div className="overflow-x-auto">
+      {/* Table Section - Scrollable */}
+      <div className="max-h-[600px] overflow-auto">
         <table className="w-full">
-          <thead className="sticky top-[208px] bg-gray-50 z-10">
+          <thead className="sticky top-0 bg-gray-50 z-10">
             <tr className="border-b border-gray-200">
               <th 
                 className="text-left p-4 font-light text-gray-600 cursor-pointer hover:bg-gray-100"
